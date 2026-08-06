@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<!--
+  skill-teardown · 批注式长卷模板
+  用法：基于此文件改内容。结构已固定为 Hero → 研判 → 预期使用画面 → 正文长卷。
+  - 原文非中文：passage 用 .cols（左英文 右中文），批注按钮放下方（见示例 passage）
+  - 原文是中文：把 .cols 改成 左中文 右批注，或保留双栏但右侧改成批注区
+  - 不要暗色系；小字已设到可读大小（正文17/译文16/批注16/标签12-13）
+  - 扩展 passage：复制一个 .passage 块，改 h3 / .cols 内容 / .note 内容即可
+  - 批注默认折叠，点击圆章展开；JS 已在文件底部
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拆解 [对象名] · 一条被批注的长卷</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;1,400;1,500&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f6f2e9;        /* 暖纸色（偏冷，避开 #F4F1EA 默认） */
+    --paper-soft:#efe9db;
+    --paper-deep:#e6dec9;
+    --ink:#2a2620;          /* 墨褐正文，非纯黑 */
+    --ink-soft:#524935;
+    --ink-faint:#83765f;
+    --vermilion:#c0392b;    /* 朱砂：批注/印章/脊线 */
+    --vermilion-deep:#8e2a1f;
+    --vermilion-tint:rgba(192,57,43,.08);
+    --gold:#8a6d2f;         /* 深金：序号/标签 */
+    --moss:#3a6b5b;         /* 苔绿："可见"标记 */
+    --rule:#d4cab5;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--paper);
+    background-image:radial-gradient(rgba(42,38,32,.025) 1px,transparent 1px);
+    background-size:22px 22px;
+    color:var(--ink);font-family:"Spectral",Georgia,serif;
+    font-size:18px;line-height:1.78;-webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--vermilion);color:var(--paper)}
+
+  /* 顶栏 */
+  .masthead{
+    border-bottom:1px solid var(--rule);padding:13px 32px;
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:"JetBrains Mono",monospace;font-size:13px;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--ink-faint);
+    position:sticky;top:0;background:rgba(246,242,233,.94);
+    backdrop-filter:blur(8px);z-index:50;
+  }
+  .masthead b{color:var(--vermilion-deep);font-weight:500}
+  .masthead nav a{color:var(--ink-soft);text-decoration:none;margin-left:18px}
+  .masthead nav a:hover{color:var(--vermilion)}
+  .wrap{max-width:1100px;margin:0 auto;padding:0 32px}
+
+  /* Hero（论点式标题，不是介绍） */
+  .hero{padding:72px 0 40px}
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:13px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);margin-bottom:24px}
+  .hero h1{
+    font-family:"Fraunces",serif;font-weight:340;
+    font-variation-settings:"opsz" 144,"SOFT" 30;
+    font-size:clamp(38px,6.4vw,76px);line-height:1.06;letter-spacing:-.02em;
+    margin:0 0 24px;color:var(--ink);
+  }
+  .hero h1 em{font-style:italic;font-variation-settings:"opsz" 144,"SOFT" 100;color:var(--vermilion);font-weight:360}
+  .hero .thesis{max-width:740px;font-size:19.5px;line-height:1.62;color:var(--ink-soft);border-left:2px solid var(--vermilion);padding-left:20px;margin:28px 0 0}
+  .hero .meta{display:flex;gap:36px;flex-wrap:wrap;margin-top:40px;font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink-soft);letter-spacing:.04em}
+  .hero .meta span b{color:var(--ink-faint);font-weight:500;display:block;font-size:12px;margin-bottom:4px;text-transform:uppercase;letter-spacing:.12em}
+
+  /* 研判 / 印章 */
+  .verdict{margin:8px 0 0;padding:24px 0 0;border-top:1px solid var(--rule)}
+  .verdict-inner{display:grid;grid-template-columns:auto 1fr;gap:36px;align-items:start}
+  .stamp{border:2.5px double var(--vermilion);color:var(--vermilion);padding:22px 26px;text-align:center;transform:rotate(-5deg);border-radius:3px;background:var(--vermilion-tint);flex-shrink:0;width:148px}
+  .stamp .v-label{font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:4px}
+  .stamp .v-grade{font-family:"Fraunces",serif;font-style:italic;font-size:72px;line-height:1;font-variation-settings:"opsz" 144,"SOFT" 100;font-weight:360}
+  .stamp .v-sub{font-family:"Spectral",serif;font-size:13.5px;margin-top:4px;color:var(--vermilion-deep)}
+  .verdict-text h3{font-family:"Fraunces",serif;font-weight:420;font-size:23px;margin:0 0 14px;color:var(--ink);letter-spacing:-.01em;line-height:1.3}
+  .verdict-text p{font-size:16px;line-height:1.72;color:var(--ink-soft);margin:0 0 12px}
+  .verdict-text .pros b{color:var(--vermilion-deep);font-weight:500}
+  .verdict-text .cons b{color:var(--gold);font-weight:500}
+  .verdict-text em{color:var(--ink);font-style:italic}
+
+  /* 预期使用画面（横向运行轨迹 + 问答） */
+  .scene-wrap{margin-top:24px;padding:32px 0 8px;border-top:1px solid var(--rule)}
+  .scene-wrap .chapter-head{margin-bottom:18px}
+  .scene-intro{max-width:800px;color:var(--ink-soft);font-size:16.5px;line-height:1.68;margin:0 0 16px}
+  .scene-intro strong{color:var(--ink)}
+  .scene{background:var(--paper-soft);border:1px solid var(--rule);border-radius:3px;overflow:hidden;margin-top:14px}
+  .scene-bar{display:flex;align-items:center;gap:10px;padding:11px 16px;background:var(--paper-deep);border-bottom:1px solid var(--rule);font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink-soft)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--paper)}
+  .dot.r{background:var(--vermilion)}.dot.y{background:var(--gold)}.dot.g{background:var(--moss)}
+  .scene-body{padding:26px 24px}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:0;align-items:stretch}
+  .step{padding:18px 14px;border-right:1px dashed var(--rule);position:relative}
+  .step:last-child{border-right:none}
+  .step .k{font-family:"Fraunces",serif;font-style:italic;font-size:24px;color:var(--gold);line-height:1;margin-bottom:10px;font-variation-settings:"opsz" 144,"SOFT" 100}
+  .step .t{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
+  .step .d{font-size:15.5px;line-height:1.58;color:var(--ink)}
+  .step.hidden .d{color:var(--ink-faint);font-style:italic}
+  .step.hidden::after,.step.visible::after{position:absolute;top:12px;right:12px;font-family:"JetBrains Mono",monospace;font-size:10.5px;letter-spacing:.08em;padding:1px 6px;border-radius:2px}
+  .step.hidden::after{content:"你不可见";color:var(--vermilion);border:1px solid var(--vermilion)}
+  .step.visible::after{content:"你可见";color:var(--moss);border:1px solid var(--moss)}
+  .ask{margin-top:20px;padding:18px 20px;border:1px solid var(--rule);border-radius:3px;background:var(--paper)}
+  .ask h4{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin:0 0 12px;font-weight:500}
+  .ask-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+  .ask-grid div{font-size:15.5px;line-height:1.66;color:var(--ink-soft)}
+  .ask-grid div b{color:var(--vermilion-deep);font-weight:500}
+  .ask-grid div em{color:var(--ink-faint);font-style:normal;font-family:"JetBrains Mono",monospace;font-size:13px}
+
+  /* 连续长卷 + 贯穿朱砂脊线（signature） */
+  .scroll{margin-top:24px;padding:40px 0 16px;border-top:1px solid var(--rule);position:relative}
+  .scroll::before{content:"";position:absolute;left:0;top:40px;bottom:16px;width:2px;background:linear-gradient(var(--vermilion),var(--vermilion-deep) 60%,transparent);opacity:.5}
+  .chapter{position:relative;padding-left:28px;margin-bottom:34px}
+  .chapter:last-child{margin-bottom:0}
+  .chapter-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:0 0 24px}
+  .chapter-num{font-family:"Fraunces",serif;font-style:italic;font-variation-settings:"opsz" 80,"SOFT" 100;font-size:28px;color:var(--vermilion);line-height:1;flex-shrink:0}
+  .chapter-head h2{font-family:"Fraunces",serif;font-weight:420;font-variation-settings:"opsz" 48,"SOFT" 40;font-size:22px;margin:0;letter-spacing:-.01em;color:var(--ink)}
+  .chapter-head .ch-note{margin-left:auto;font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--ink-faint);letter-spacing:.1em;text-transform:uppercase}
+
+  /* passage：左英文 右中文，批注按钮在下方点开 */
+  .passage{margin-bottom:30px;padding:18px 0 0;border-top:1px dashed var(--rule)}
+  .passage:first-child{border-top:none;padding-top:0}
+  .passage h3{font-family:"Fraunces",serif;font-weight:500;font-variation-settings:"opsz" 24,"SOFT" 50;font-size:19px;margin:0 0 14px;color:var(--ink);letter-spacing:-.01em}
+  .cols{display:grid;grid-template-columns:1fr 1px 1fr;gap:0;align-items:start}
+  .cols .en{padding-right:30px}
+  .cols .vrule{background:var(--rule);align-self:stretch;min-height:40px}
+  .cols .zh{padding-left:30px}
+  .lang{font-family:"JetBrains Mono",monospace;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
+  .cols .en p{font-family:"Spectral",serif;font-style:italic;font-size:16px;line-height:1.74;color:var(--ink-soft);margin:0 0 12px}
+  .cols .en p:last-child{margin-bottom:0}
+  .cols .zh p{font-size:17px;line-height:1.76;color:var(--ink);margin:0 0 12px}
+  .cols .zh p:last-child{margin-bottom:0}
+  .cols .zh p strong{color:var(--ink);font-weight:600}
+  .anchor{color:var(--vermilion-deep);font-weight:500;border-bottom:1.5px solid var(--vermilion);cursor:help}
+  .cols .en .anchor{font-style:italic}
+
+  /* 批注：按钮在栏下方，默认折叠不撑长 */
+  .note-wrap{margin-top:14px}
+  .note-toggle{display:inline-flex;align-items:center;gap:9px;background:none;border:none;cursor:pointer;padding:0;font-family:"Spectral",serif;color:var(--vermilion-deep)}
+  .note-toggle .badge{width:28px;height:28px;border-radius:50%;background:var(--vermilion);color:var(--paper);font-family:"Fraunces",serif;font-size:13.5px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .note-toggle .plus{font-family:"JetBrains Mono",monospace;font-size:12.5px;width:18px;height:18px;display:flex;align-items:center;justify-content:center;border:1px solid var(--vermilion);border-radius:50%;color:var(--vermilion)}
+  .note-toggle .hint{font-size:14.5px;border-bottom:1px dashed var(--vermilion);padding-bottom:1px}
+  .note-toggle:hover .hint{color:var(--vermilion)}
+  .note{max-height:0;overflow:hidden;opacity:0;transition:max-height .45s ease,margin-top .45s ease,opacity .3s ease;margin-top:0}
+  .note.open{max-height:2400px;margin-top:16px;opacity:1}
+  .note-inner{border-left:2px solid var(--vermilion);padding:4px 0 4px 20px;margin-left:14px}
+  .note .tag{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);background:rgba(138,109,47,.12);padding:3px 8px;border-radius:2px;margin-bottom:14px}
+  .note p{font-family:"Spectral",serif;font-size:16px;line-height:1.82;color:var(--ink-soft);margin:0 0 14px}
+  .note p:last-child{margin-bottom:0}
+  .note strong{color:var(--vermilion-deep);font-weight:600}
+  .note em{color:var(--ink);font-style:italic}
+
+  footer{border-top:1px solid var(--rule);padding:24px 32px;text-align:center;font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink-faint);letter-spacing:.08em;margin-top:24px}
+
+  @media (max-width:900px){
+    .cols{grid-template-columns:1fr;gap:0}
+    .cols .vrule{display:none;height:1px;background:var(--rule);margin:14px 0}
+    .cols .en{padding-right:0}.cols .zh{padding-left:0}
+    .flow{grid-template-columns:1fr}.step{border-right:none;border-bottom:1px dashed var(--rule)}
+    .verdict-inner{grid-template-columns:1fr;gap:24px}.verdict-inner .stamp{margin:0 auto}
+    .ask-grid{grid-template-columns:1fr}.hero{padding:48px 0 32px}.wrap{padding:0 22px}
+    .scroll,.scene-wrap{padding-left:18px}.chapter-head .ch-note{display:none}
+    body{font-size:17px}.cols .zh p{font-size:16px}.cols .en p{font-size:15px}.note p{font-size:15.5px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}html{scroll-behavior:auto}.note{transition:none}}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--vermilion);outline-offset:3px}
+</style>
+</head>
+<body>
+
+<div class="masthead">
+  <div><b>批注册 № 01</b> &nbsp;·&nbsp; 拆解 [对象来源] · [对象名]</div>
+  <nav>
+    <a href="#verdict">裁决</a>
+    <a href="#scene">使用画面</a>
+    <a href="#sec1">章节一</a>
+  </nav>
+</div>
+
+<div class="wrap">
+
+  <!-- ============ HERO（论点式标题） ============ -->
+  <header class="hero">
+    <div class="eyebrow">英文原文 · 中文译文 · 可展开深度批注 · 质量裁决</div>
+    <h1>[一句断言式标题：点出这个对象的本质，不是介绍]<br>是<em>[关键词]</em>。</h1>
+    <p class="thesis">
+      [一段导语：这个对象是什么形态、为什么值得拆解、这份拆解要挖什么。]
+    </p>
+    <div class="meta">
+      <span><b>形态</b>[纯提示词 / 带脚本 / 带工具]</span>
+      <span><b>触发</b>[被动注入 / 主动调用]</span>
+      <span><b>产出</b>[HTML / 文档 / 数据]</span>
+      <span><b>原文</b>[来源链接或路径]</span>
+    </div>
+  </header>
+
+  <!-- ============ 研判 / 质量裁决 ============ -->
+  <section id="verdict" class="verdict">
+    <div class="verdict-inner">
+      <div class="stamp">
+        <div class="v-label">质量裁决</div>
+        <div class="v-grade">A</div>
+        <div class="v-sub">[推荐学习 / 谨慎使用 / 不推荐]</div>
+      </div>
+      <div class="verdict-text">
+        <h3>判断：[一句结论]</h3>
+        <p class="pros"><b>好的地方——</b>[它做对了什么，最强的几个设计。具体到设计选择，不要泛泛说"很全面"。]</p>
+        <p class="cons"><b>不好的地方——</b>[诚实局限：依赖什么、不保证什么、对什么场景不适用。]</p>
+        <p><b>迁移启示：</b>[把这次拆解抽象成一条可迁移的元规则——"写 skill 时优先问……"。]</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 预期使用画面：它到底怎么跑 ============ -->
+  <section id="scene" class="scene-wrap">
+    <div class="chapter-head">
+      <div class="chapter-num">用</div>
+      <h2>预期使用画面：它到底怎么跑</h2>
+      <div class="ch-note">回答读者最关心的运行问题</div>
+    </div>
+
+    <p class="scene-intro">
+      [一段话直接回答：产出形态是什么、会不会反问用户、运行轨迹怎样。先给结论再展开。]
+    </p>
+
+    <div class="scene">
+      <div class="scene-bar">
+        <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+        &nbsp;&nbsp;[对象名] — 运行轨迹
+      </div>
+      <div class="scene-body">
+        <div class="flow">
+          <!-- 5 步左右；给 .hidden 标"你不可见"，.visible 标"你可见"，都不加类则无标记 -->
+          <div class="step"><div class="k">i</div><div class="t">[步骤名]</div><div class="d">[这步发生什么]</div></div>
+          <div class="step hidden"><div class="k">ii</div><div class="t">[步骤名]</div><div class="d">[用户不可见的内部动作]</div></div>
+          <div class="step hidden"><div class="k">iii</div><div class="t">[步骤名]</div><div class="d">[内部规划/决策]</div></div>
+          <div class="step visible"><div class="k">iv</div><div class="t">[步骤名]</div><div class="d">[用户可见的输出]</div></div>
+          <div class="step"><div class="k">v</div><div class="t">[步骤名]</div><div class="d">[用户最终看到什么]</div></div>
+        </div>
+
+        <div class="ask">
+          <h4>关于"它会不会问用户"</h4>
+          <div class="ask-grid">
+            <div>
+              <b>[大多数情况：问/不问]</b> [说明何时反问、何时不反问。]<br><br>
+              <b>[模糊时：]</b> [是自己拍板还是反问？把选择讲出来吗？]
+            </div>
+            <div>
+              <b>产出形态：</b><em>[HTML / 代码 / 文档]</em>，[补充说明]。<br><br>
+              <b>用户能拿到的过程信息：</b>[能看到多少中间态，多少被藏在内部。]
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 连续长卷 ============ -->
+  <main class="scroll">
+
+    <!-- 章节 1 -->
+    <article class="chapter" id="sec1">
+      <div class="chapter-head">
+        <div class="chapter-num">壹</div>
+        <h2>[章节标题]</h2>
+        <div class="ch-note">[原文小节名]</div>
+      </div>
+
+      <!-- 示例 passage：复制此块扩展更多段 -->
+      <div class="passage">
+        <h3>[小节标题] · [中文]</h3>
+        <div class="cols">
+          <div class="en">
+            <div class="lang">EN · 原文</div>
+            <p>[English original. 用 &lt;span class="anchor"&gt; 标关键词。]</p>
+          </div>
+          <div class="vrule"></div>
+          <div class="zh">
+            <div class="lang">中 · 译文</div>
+            <p>[中文译文。关键词同样用 anchor。]</p>
+          </div>
+        </div>
+        <div class="note-wrap">
+          <button class="note-toggle" aria-expanded="false">
+            <span class="badge">批</span><span class="plus">+</span><span class="hint">展开深度批注</span>
+          </button>
+          <div class="note"><div class="note-inner">
+            <span class="tag">[为什么 XXX 而不是 YYY / 它关掉了哪条退路 / 把什么转化成什么]</span>
+            <p>[批注正文 1：回答思想层面的取舍，要有因果。]</p>
+            <p>[批注正文 2：指出它没说什么 / 留了什么口子，或落到这个页面自己怎么执行。]</p>
+          </div></div>
+        </div>
+      </div>
+      <!-- 示例 passage 结束 -->
+
+    </article>
+
+  </main>
+
+</div>
+
+<footer>
+  批注册 № 01 · 拆解 [对象名] · 用它自己的设计哲学做成 · [日期]
+</footer>
+
+<script>
+  document.querySelectorAll('.note-toggle').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var note = btn.nextElementSibling;
+      var open = note.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      btn.querySelector('.plus').textContent = open ? '−' : '+';
+      btn.querySelector('.hint').textContent = open ? '点击收起' : '展开深度批注';
+    });
+  });
+</script>
+
+</body>
+</html>
