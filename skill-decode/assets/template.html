@@ -117,10 +117,18 @@
   .passage.zh-src .bilingual .src p{font-size:17px;font-style:normal;color:var(--ink);}
   .passage.zh-src .bilingual .zh{display:none;}
 
-  /* 非散文段（代码 / YAML / JSON）：代码没有「译文」，右栏改放「说明」。
-     用 .mini 写「说明」而非「译文」；原文用等宽 <pre> 可横向滚动。 */
+  /* 非散文段（代码 / YAML / JSON）：原文用等宽 <pre>。右栏仍是「译文」——
+     把代码/配置的含义翻成易懂中文（深层评论放批注，别把右栏变成干巴说明）。
+     <pre> 换行显示、不横向滚动：横滚交互容易被漏看。 */
   .bilingual .src pre{font-family:var(--font-mono);font-size:15.5px;line-height:1.62;font-style:normal;
-    background:var(--paper-sink);padding:14px 16px;margin:0;overflow-x:auto;white-space:pre;color:var(--ink);}
+    background:var(--paper-sink);padding:14px 16px;margin:0;color:var(--ink);
+    white-space:pre-wrap;word-break:break-word;overflow-wrap:anywhere;}
+
+  /* inline markdown 渲染：原文/译文/批注里的 **加粗**、`行内代码` 要转成
+     <strong> / <code>，不要把 ** 和反引号当字面量裸露出来。 */
+  .bilingual p strong,.note-inner strong{font-weight:600;color:var(--ink);}
+  .bilingual p code,.note-inner code{font-family:var(--font-mono);font-size:.9em;
+    background:var(--paper-sink);padding:1px 5px;border-radius:3px;}
 
   /* 题眼：全篇最核心的 1–2 段。脉络节点做成朱砂实心+柔环，眉标一句
      「先看这条」，批注默认展开——但不破坏脊线连续，仍是同一卷。 */
@@ -129,14 +137,17 @@
   .passage.eye .eye-tag{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.12em;color:var(--cinnabar);margin-bottom:12px;}
   .passage.eye .note-inner{border-left-width:4px;}
 
-  /* 批注：折叠按钮在两栏下方；不纵向堆三块 */
-  .note-toggle{display:inline-flex;align-items:center;gap:8px;margin-top:16px;cursor:pointer;
-    font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--cinnabar);
-    background:none;border:none;padding:0;}
+  /* 批注：折叠按钮在两栏下方；不纵向堆三块。做成明显的可点药丸按钮，
+     一眼能看出「这里能点开」——affordance 要足。 */
+  .note-toggle{display:inline-flex;align-items:center;gap:9px;margin-top:16px;cursor:pointer;
+    font-family:var(--font-body);font-size:14px;font-weight:600;letter-spacing:.01em;color:var(--cinnabar);
+    background:rgba(192,57,43,.07);border:1px solid rgba(192,57,43,.4);border-radius:22px;padding:8px 16px;
+    transition:background .2s;}
+  .note-toggle:hover{background:rgba(192,57,43,.13);}
   .note-toggle .seal{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--cinnabar);
     display:inline-grid;place-items:center;font-size:11px;transform:rotate(-6deg);transition:transform .3s;}
   .note-toggle[aria-expanded="true"] .seal{transform:rotate(354deg);}
-  .note-toggle .chev{transition:transform .3s;}
+  .note-toggle .chev{transition:transform .3s;font-size:15px;}
   .note-toggle[aria-expanded="true"] .chev{transform:rotate(90deg);}
 
   .note-body{max-height:0;overflow:hidden;transition:max-height .4s ease;}
@@ -243,6 +254,9 @@
     <p style="color:var(--ink-soft);max-width:54ch;margin:0 0 18px;">
       产出形态：{{图 / 代码 / 文档}}　·　会不会反问你：{{大多不问，模糊时才问 / 自己拍板}}
     </p>
+    <!-- vis 决定每步「你看得见/看不见」：class="vis seen" 渲染● 你看得见，
+         class="vis unseen" 渲染○ 你看不见。首步(你发起)和末步(你看到)通常是 seen——
+         别把所有步都写成 unseen。 -->
     <div class="track">
       <div class="step"><div class="n">01</div><div class="t">你发起</div><div class="d">{{用户说了什么}}</div><span class="vis seen"></span></div>
       <div class="step"><div class="n">02</div><div class="t">被动注入</div><div class="d">{{skill 加载了什么}}</div><span class="vis unseen"></span></div>
@@ -266,7 +280,7 @@
           <div class="zh"><div class="mini">译文</div><p>{{忠实中文翻译}}</p></div>
         </div>
         <button class="note-toggle" aria-expanded="false" onclick="toggleNote(this)">
-          <span class="seal">批</span><span class="label">展开批注</span><span class="chev">›</span>
+          <span class="seal">批</span><span class="label">点击展开批注</span><span class="chev">›</span>
         </button>
         <div class="note-body"><div class="note-inner">
           <span class="ntag">{{连接段简批：这段在整份结构里承担什么职责}}</span>
@@ -278,11 +292,12 @@
       <article class="passage key" data-key="1">
         <div class="marker"><div class="dot"></div><div class="no">S002</div></div>
         <div class="bilingual">
-          <div class="src"><div class="mini">ORIGINAL</div><p>{{关键原文段落}}</p></div>
-          <div class="zh"><div class="mini">译文</div><p>{{忠实中文翻译}}</p></div>
+          <!-- 原文里的 **加粗**、`code` 要渲染成 <strong>/<code>，不要裸露 ** 和反引号 -->
+          <div class="src"><div class="mini">ORIGINAL</div><p>{{关键原文段落，含 <strong>rendered bold</strong> 与 <code>inline_code</code>}}</p></div>
+          <div class="zh"><div class="mini">译文</div><p>{{忠实中文翻译，同样把 <strong>加粗</strong>、<code>行内代码</code> 渲染出来}}</p></div>
         </div>
         <button class="note-toggle" aria-expanded="false" onclick="toggleNote(this)">
-          <span class="seal">批</span><span class="label">展开批注</span><span class="chev">›</span>
+          <span class="seal">批</span><span class="label">点击展开批注</span><span class="chev">›</span>
         </button>
         <div class="note-body"><div class="note-inner">
           <span class="ntag">为什么是 {{A}} 而不是看着更合理的 {{B}}</span>
@@ -306,7 +321,7 @@
           <div class="zh"><p></p></div>
         </div>
         <button class="note-toggle" aria-expanded="false" onclick="toggleNote(this)">
-          <span class="seal">批</span><span class="label">展开批注</span><span class="chev">›</span>
+          <span class="seal">批</span><span class="label">点击展开批注</span><span class="chev">›</span>
         </button>
         <div class="note-body"><div class="note-inner">
           <span class="ntag">{{批注标签}}</span>
@@ -314,16 +329,16 @@
         </div></div>
       </article>
 
-      <!-- —— 非散文段：代码 / YAML / JSON（右栏放「说明」，不是逐字译文） —— -->
+      <!-- —— 非散文段：代码 / YAML / JSON。<pre> 换行显示（不横滚），右栏仍是「译文」 —— -->
       <article class="passage key" data-key="1">
         <div class="marker"><div class="dot"></div><div class="no">S004</div></div>
         <div class="bilingual">
           <div class="src"><div class="mini">ORIGINAL · CODE</div><pre>name: example-skill
-description: {{原样保留的代码/配置}}</pre></div>
-          <div class="zh"><div class="mini">说明</div><p>{{这段代码/配置在做什么、每个字段管什么——不是逐字翻译，是讲给小白听}}</p></div>
+description: {{原样保留的代码/配置，超长会自动换行而不是横向滚动}}</pre></div>
+          <div class="zh"><div class="mini">译文</div><p>{{把这段代码/配置的含义翻成易懂中文：它在做什么、关键字段管什么。深层评论放到下面批注里}}</p></div>
         </div>
         <button class="note-toggle" aria-expanded="false" onclick="toggleNote(this)">
-          <span class="seal">批</span><span class="label">展开批注</span><span class="chev">›</span>
+          <span class="seal">批</span><span class="label">点击展开批注</span><span class="chev">›</span>
         </button>
         <div class="note-body"><div class="note-inner">
           <span class="ntag">{{为什么这个字段这么设计}}</span>
@@ -375,7 +390,7 @@ description: {{原样保留的代码/配置}}</pre></div>
     var body = btn.nextElementSibling;
     var open = btn.getAttribute('aria-expanded') === 'true';
     btn.setAttribute('aria-expanded', String(!open));
-    btn.querySelector('.label').textContent = open ? '展开批注' : '收起批注';
+    btn.querySelector('.label').textContent = open ? '点击展开批注' : '收起批注';
     body.style.maxHeight = open ? '0px' : body.firstElementChild.scrollHeight + 40 + 'px';
   }
   // 阅读进度 + 段计数
