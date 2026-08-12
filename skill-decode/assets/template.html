@@ -107,10 +107,24 @@
   .bilingual .src .mini,.bilingual .zh .mini{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--ink-faint);margin-bottom:8px;}
   .bilingual .src p{font-size:16px;font-style:italic;color:var(--ink-soft);white-space:pre-wrap;}
   .bilingual .zh p{font-size:17px;white-space:pre-wrap;}
-  /* 中文原文的段落：单栏铺满，右侧留给批注（见 .note-inline） */
+  /* 中文原文的段落：单栏铺满，右侧留给批注。此时 src 是「主文本」，
+     不能沿用给外文参照的 16px 斜体——用 17px 正体墨色。 */
   .passage.zh-src .bilingual{grid-template-columns:1fr;}
   .passage.zh-src .bilingual .src{border-right:none;padding-right:0;}
+  .passage.zh-src .bilingual .src p{font-size:17px;font-style:normal;color:var(--ink);}
   .passage.zh-src .bilingual .zh{display:none;}
+
+  /* 非散文段（代码 / YAML / JSON）：代码没有「译文」，右栏改放「说明」。
+     用 .mini 写「说明」而非「译文」；原文用等宽 <pre> 可横向滚动。 */
+  .bilingual .src pre{font-family:var(--font-mono);font-size:15.5px;line-height:1.62;font-style:normal;
+    background:var(--paper-sink);padding:14px 16px;margin:0;overflow-x:auto;white-space:pre;color:var(--ink);}
+
+  /* 题眼：全篇最核心的 1–2 段。脉络节点做成朱砂实心+柔环，眉标一句
+     「先看这条」，批注默认展开——但不破坏脊线连续，仍是同一卷。 */
+  .passage.eye .marker .dot{width:12px;height:12px;background:var(--cinnabar);box-shadow:0 0 0 4px rgba(192,57,43,.14);}
+  .passage.eye .marker .no{color:var(--cinnabar);}
+  .passage.eye .eye-tag{display:block;font-family:var(--font-mono);font-size:12px;letter-spacing:.12em;color:var(--cinnabar);margin-bottom:12px;}
+  .passage.eye .note-inner{border-left-width:4px;}
 
   /* 批注：折叠按钮在两栏下方；不纵向堆三块 */
   .note-toggle{display:inline-flex;align-items:center;gap:8px;margin-top:16px;cursor:pointer;
@@ -257,6 +271,44 @@
         <div class="note-body"><div class="note-inner">
           <span class="ntag">{{批注标签}}</span>
           <p>{{批注正文}}</p>
+        </div></div>
+      </article>
+
+      <!-- —— 非散文段：代码 / YAML / JSON（右栏放「说明」，不是逐字译文） —— -->
+      <article class="passage key" data-key="1">
+        <div class="marker"><div class="dot"></div><div class="no">S004</div></div>
+        <div class="bilingual">
+          <div class="src"><div class="mini">ORIGINAL · CODE</div><pre>name: example-skill
+description: {{原样保留的代码/配置}}</pre></div>
+          <div class="zh"><div class="mini">说明</div><p>{{这段代码/配置在做什么、每个字段管什么——不是逐字翻译，是讲给小白听}}</p></div>
+        </div>
+        <button class="note-toggle" aria-expanded="false" onclick="toggleNote(this)">
+          <span class="seal">批</span><span class="label">展开批注</span><span class="chev">›</span>
+        </button>
+        <div class="note-body"><div class="note-inner">
+          <span class="ntag">{{为什么这个字段这么设计}}</span>
+          <p>{{批注}}</p>
+        </div></div>
+      </article>
+
+      <!-- —— 题眼：全篇最核心的 1–2 段，批注默认展开 —— -->
+      <article class="passage eye" data-key="1">
+        <div class="marker"><div class="dot"></div><div class="no">S005</div></div>
+        <span class="eye-tag">◆ 题眼 · 全篇先看这条</span>
+        <div class="bilingual">
+          <div class="src"><div class="mini">ORIGINAL</div><p>{{全篇最核心的那段原文}}</p></div>
+          <div class="zh"><div class="mini">译文</div><p>{{忠实翻译}}</p></div>
+        </div>
+        <button class="note-toggle" aria-expanded="true" onclick="toggleNote(this)">
+          <span class="seal">批</span><span class="label">收起批注</span><span class="chev">›</span>
+        </button>
+        <div class="note-body" style="max-height:none"><div class="note-inner">
+          <span class="ntag">{{这条为什么是整份 skill 的题眼}}</span>
+          <p>{{把整份设计的底层逻辑落在这一段上讲透}}</p>
+          <div class="verdict">
+            <span class="keep"><b>学走：</b>{{可迁移元规则}}</span>
+            <span class="drop"><b>别照搬：</b>{{前提}}</span>
+          </div>
         </div></div>
       </article>
 
