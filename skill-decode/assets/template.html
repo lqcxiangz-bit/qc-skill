@@ -101,9 +101,12 @@
   .passage.key .marker .dot{background:var(--cinnabar);}
 
   /* 双栏：左原文 / 右译文，中间一条竖分隔（编码「两种内容」，非装饰） */
+  /* min-width:0 关键：grid 子项默认 min-width:auto，会被内部超长不换行内容
+     （如 <pre> 里一行长 description）撑破轨道、溢出页面；置 0 才能让 <pre>
+     自己的 overflow-x:auto 生效而不是把整栏顶宽。 */
   .bilingual{display:grid;grid-template-columns:1fr 1fr;gap:0;}
-  .bilingual .src{padding-right:26px;border-right:1px solid var(--hair);}
-  .bilingual .zh{padding-left:26px;}
+  .bilingual .src{padding-right:26px;border-right:1px solid var(--hair);min-width:0;}
+  .bilingual .zh{padding-left:26px;min-width:0;}
   .bilingual .src .mini,.bilingual .zh .mini{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--ink-faint);margin-bottom:8px;}
   .bilingual .src p{font-size:16px;font-style:italic;color:var(--ink-soft);white-space:pre-wrap;}
   .bilingual .zh p{font-size:17px;white-space:pre-wrap;}
