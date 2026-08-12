@@ -153,17 +153,54 @@
 
   footer{padding:60px 0 80px;color:var(--ink-faint);font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;}
 
-  /* ══════════ 响应式：移动端堆叠，但仍靠脊线保持连续 ══════════ */
+  /* 全局防横向溢出：长英文词 / URL 不撑破页面；代码块自己横滚 */
+  html,body{overflow-x:hidden;}
+  .bilingual p,.note-inner p,.summary .cell .v,.takeaway p{overflow-wrap:break-word;word-break:break-word;}
+  .src pre{-webkit-overflow-scrolling:touch;}
+
+  /* ══════════ 响应式：移动端堆叠，靠脊线保持连续；字号只抬不压 ══════════ */
+  /* 原则：手机上可以往下滚很长，但正文/译文/批注都不许缩小到看不清。
+     译文是主文本(17px)，批注 16px 保底，英文原文 16px 斜体。 */
   @media (max-width:720px){
-    body{font-size:16px;}
+    .wrap{padding:0 18px;}
+    body{font-size:16.5px;}
+    .hero{padding:60px 0 44px;}
+    .hero .lede{font-size:18px;}
+    .sec{padding:44px 0 8px;}
+    /* 章节眉标：窄屏时英文小标签掉到整行，避免被挤出右边缘裁切 */
+    .sec-head{flex-wrap:wrap;}
+    .sec-head .sub{width:100%;margin-top:2px;}
+    /* 执行摘要窄屏改单列：不挤两列、文字不顶边、字更宽松 */
+    .summary{grid-template-columns:1fr;}
+
+    /* 双栏堆叠：英文原文在上、中文译文在下，都全宽 */
     .bilingual{grid-template-columns:1fr;}
-    .bilingual .src{border-right:none;padding-right:0;border-bottom:1px solid var(--hair);padding-bottom:16px;margin-bottom:16px;}
+    .bilingual .src{border-right:none;padding-right:0;border-bottom:1px solid var(--hair);padding-bottom:14px;margin-bottom:14px;}
     .bilingual .zh{padding-left:0;}
-    .bilingual .zh p{font-size:16px;}
-    .note-inner p{font-size:15.5px;}
-    .classroom{padding-left:34px;}
-    .classroom::before{left:9px;}
-    .passage .marker{left:-34px;}
+    .bilingual .src p{font-size:16px;}                 /* 英文原文：斜体但不小 */
+    .bilingual .zh p{font-size:17px;}                  /* 中文译文：主文本，够大 */
+    .passage.zh-src .bilingual .src p{font-size:17px;} /* 中文原文单栏：也 17px */
+    .src pre{font-size:15px;}
+    .note-inner p{font-size:16px;}                     /* 批注保底 16px */
+    .note-inner .ladder{font-size:15px;}
+
+    /* 脊线与段号收窄，但仍是同一条不断的脊线 */
+    .classroom{padding-left:28px;}
+    .classroom::before{left:8px;}
+    .passage .marker{left:-28px;width:24px;}
+
+    /* 运行轨迹改纵向堆叠，避免横排被挤成小字 */
+    .track{flex-direction:column;}
+    .track .step{min-width:0;}
+    .track .step + .step{border-left:none;border-top:1px solid var(--hair);}
+  }
+
+  /* 更小的屏（≤380）再让边距紧一点，但字号不再往下动 */
+  @media (max-width:380px){
+    .wrap{padding:0 14px;}
+    .classroom{padding-left:24px;}
+    .passage .marker{left:-24px;}
+    .classroom::before{left:6px;}
   }
 </style>
 </head>
