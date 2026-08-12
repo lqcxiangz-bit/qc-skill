@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill 解剖教授 v3"
+  short_description: "从会用到看懂，再到全文精读一个 skill"
+  default_prompt: "使用 $skill-anatomist-v3 把这个 skill 教给初学者：先讲它是什么和怎么用，再解释设计因果，最后全文逐段翻译批注。"
