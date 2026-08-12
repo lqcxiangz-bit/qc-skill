@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>拆解 · {{SKILL_NAME}}</title>
+<!--
+  skill-decode 模板骨架 · 暖纸色 · 连续长卷
+  ────────────────────────────────────────────────
+  改这份文件时守三条不可破的约束：
+  1) 连续感优先：逐段课堂不给每段做卡片。整页共用一张纸，
+     段与段只靠「发丝线 + 页边段号 + 贯穿脊线」分隔。绝不加
+     边框 / 阴影 / 每段背景色块——那是「割裂感」的根因。
+  2) 暖纸色，不要暗色系。小字够大（正文≥17px、批注≥16px）。
+  3) signature 押在「贯穿脊线 + 批注圆章」这个机制上，不是配色渐变。
+  字体默认用系统衬线栈（离线可开）。若允许联网，可在 <head> 引入
+  Fraunces / Spectral / JetBrains Mono 再改下面的 --font-* 变量。
+-->
+<style>
+  :root{
+    /* —— 暖纸色 token —— */
+    --paper:      #f6f2e9;   /* 偏冷的暖纸，避开 AI 默认奶油 #F4F1EA */
+    --paper-sink: #efe9db;   /* 略沉一档，用于运行轨迹卡片等 */
+    --ink:        #2a2620;   /* 墨褐，不是纯黑 */
+    --ink-soft:   #5c554a;   /* 次要文字 */
+    --ink-faint:  #8c8578;   /* 眉标、段号 */
+    --cinnabar:   #c0392b;   /* 朱砂——批注 / 脊线 / 圆章 */
+    --gold:       #8a6d2f;   /* 深金——学走 */
+    --moss:       #3a6b5b;   /* 苔绿——别照搬 */
+    --hair:       #d8cfbd;   /* 发丝分隔线 */
+    /* —— 字体三件套（系统栈兜底，可换 Google Fonts）—— */
+    --font-display: "Fraunces", "Songti SC", "Noto Serif SC", Georgia, "Times New Roman", serif;
+    --font-body:    "Spectral", "Songti SC", "Noto Serif SC", Georgia, serif;
+    --font-mono:    "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--font-body); font-size:17px; line-height:1.8;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} *{transition:none!important;} }
+
+  /* —— 顶部阅读进度 —— */
+  #progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--cinnabar);z-index:50;transition:width .1s linear;}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 28px;}
+  .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);}
+
+  /* ══════════ 1. HERO —— 一篇论点，不是介绍 ══════════ */
+  .hero{padding:96px 0 72px;}
+  .hero .eyebrow{color:var(--cinnabar);}
+  .hero h1{
+    font-family:var(--font-display); font-weight:600; font-size:clamp(34px,5.4vw,60px);
+    line-height:1.14; letter-spacing:-.01em; margin:.34em 0 .5em; max-width:20ch;
+  }
+  .hero .lede{font-size:20px;color:var(--ink-soft);max-width:52ch;}
+
+  /* ══════════ 章节眉标（轻量，不做整行横幅） ══════════ */
+  .sec{padding:56px 0 8px;}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:20px;}
+  .sec-ordinal{font-family:var(--font-display);font-size:30px;color:var(--cinnabar);line-height:1;flex:none;}
+  .sec-head h2{font-family:var(--font-display);font-weight:600;font-size:26px;margin:0;letter-spacing:-.005em;}
+  .sec-head .sub{font-family:var(--font-mono);font-size:12px;color:var(--ink-faint);letter-spacing:.1em;}
+
+  /* ══════════ 2. 执行摘要（小白友好） ══════════ */
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:2px;background:var(--hair);border:1px solid var(--hair);}
+  .summary .cell{background:var(--paper);padding:20px 22px;}
+  .summary .cell .k{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--ink-faint);margin-bottom:6px;}
+  .summary .cell .v{font-size:17px;}
+  .summary .cell.wide{grid-column:1/-1;}
+  .tag{display:inline-block;font-family:var(--font-mono);font-size:12px;padding:2px 9px;border-radius:2px;margin:2px 4px 2px 0;}
+  .tag.keep{color:var(--gold);border:1px solid var(--gold);}
+  .tag.drop{color:var(--moss);border:1px solid var(--moss);}
+
+  /* ══════════ 3. 它到底怎么跑：横向运行轨迹（纸色，非暗色终端） ══════════ */
+  .track{display:flex;gap:0;flex-wrap:wrap;background:var(--paper-sink);border:1px solid var(--hair);}
+  .track .step{flex:1;min-width:150px;padding:18px 18px;position:relative;}
+  .track .step + .step{border-left:1px solid var(--hair);}
+  .track .step .n{font-family:var(--font-mono);font-size:12px;color:var(--cinnabar);}
+  .track .step .t{font-weight:600;margin:4px 0 6px;}
+  .track .step .d{font-size:15px;color:var(--ink-soft);}
+  .track .step .vis{display:inline-block;margin-top:8px;font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;color:var(--ink-faint);}
+  .track .step .vis.seen::before{content:"● 你看得见";color:var(--moss);}
+  .track .step .vis.unseen::before{content:"○ 你看不见";color:var(--ink-faint);}
+
+  /* ══════════ 4. 逐段课堂 —— 连续长卷（无卡片！贯穿脊线缝合） ══════════ */
+  .classroom{position:relative;padding-left:46px;margin-top:8px;}
+  /* 贯穿脊线：一条不断的竖线，从第一段拉到最后一段，把所有段缝成「同一卷」——signature */
+  .classroom::before{content:"";position:absolute;left:14px;top:8px;bottom:8px;width:2px;background:var(--hair);}
+
+  .passage{position:relative;padding:26px 0 30px;}
+  /* 段与段之间只有一条发丝线，不是卡片边框 */
+  .passage + .passage{border-top:1px solid var(--hair);}
+  /* 页边段号（挂在脊线上的小节点） */
+  .passage .marker{position:absolute;left:-46px;top:28px;width:30px;text-align:center;}
+  .passage .marker .dot{width:9px;height:9px;border-radius:50%;background:var(--paper);border:2px solid var(--cinnabar);margin:0 auto 6px;position:relative;left:-1px;}
+  .passage .marker .no{font-family:var(--font-mono);font-size:11px;color:var(--ink-faint);}
+  /* 关键段：实心节点，提示「这里值得停」 */
+  .passage.key .marker .dot{background:var(--cinnabar);}
+
+  /* 双栏：左原文 / 右译文，中间一条竖分隔（编码「两种内容」，非装饰） */
+  .bilingual{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+  .bilingual .src{padding-right:26px;border-right:1px solid var(--hair);}
+  .bilingual .zh{padding-left:26px;}
+  .bilingual .src .mini,.bilingual .zh .mini{font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;color:var(--ink-faint);margin-bottom:8px;}
+  .bilingual .src p{font-size:16px;font-style:italic;color:var(--ink-soft);white-space:pre-wrap;}
+  .bilingual .zh p{font-size:17px;white-space:pre-wrap;}
+  /* 中文原文的段落：单栏铺满，右侧留给批注（见 .note-inline） */
+  .passage.zh-src .bilingual{grid-template-columns:1fr;}
+  .passage.zh-src .bilingual .src{border-right:none;padding-right:0;}
+  .passage.zh-src .bilingual .zh{display:none;}
+
+  /* 批注：折叠按钮在两栏下方；不纵向堆三块 */
+  .note-toggle{display:inline-flex;align-items:center;gap:8px;margin-top:16px;cursor:pointer;
+    font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:var(--cinnabar);
+    background:none;border:none;padding:0;}
+  .note-toggle .seal{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--cinnabar);
+    display:inline-grid;place-items:center;font-size:11px;transform:rotate(-6deg);transition:transform .3s;}
+  .note-toggle[aria-expanded="true"] .seal{transform:rotate(354deg);}
+  .note-toggle .chev{transition:transform .3s;}
+  .note-toggle[aria-expanded="true"] .chev{transform:rotate(90deg);}
+
+  .note-body{max-height:0;overflow:hidden;transition:max-height .4s ease;}
+  .note-inner{padding:18px 22px 6px 22px;margin-top:14px;border-left:3px solid var(--cinnabar);background:transparent;}
+  .note-inner .ntag{font-family:var(--font-mono);font-size:13px;color:var(--cinnabar);letter-spacing:.02em;margin-bottom:10px;display:block;}
+  .note-inner p{font-size:16px;margin:0 0 12px;}          /* 批注正文用衬线体，非等宽 */
+  .note-inner .ladder{background:var(--paper-sink);padding:12px 16px;margin:12px 0;font-size:15px;color:var(--ink-soft);}
+  .note-inner .ladder b{color:var(--ink);}
+  .note-inner .verdict{margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;font-size:15px;}
+  .note-inner .verdict .keep b{color:var(--gold);}
+  .note-inner .verdict .drop b{color:var(--moss);}
+
+  /* ══════════ 5. 迁移练习 ══════════ */
+  .takeaway{background:var(--paper-sink);border:1px solid var(--hair);padding:28px 30px;margin-top:8px;}
+  .takeaway h3{font-family:var(--font-display);font-size:20px;margin:0 0 10px;}
+  .takeaway .rule{font-size:18px;border-left:3px solid var(--gold);padding-left:16px;margin:14px 0;color:var(--ink);}
+
+  footer{padding:60px 0 80px;color:var(--ink-faint);font-family:var(--font-mono);font-size:12px;letter-spacing:.06em;}
+
+  /* ══════════ 响应式：移动端堆叠，但仍靠脊线保持连续 ══════════ */
+  @media (max-width:720px){
+    body{font-size:16px;}
+    .bilingual{grid-template-columns:1fr;}
+    .bilingual .src{border-right:none;padding-right:0;border-bottom:1px solid var(--hair);padding-bottom:16px;margin-bottom:16px;}
+    .bilingual .zh{padding-left:0;}
+    .bilingual .zh p{font-size:16px;}
+    .note-inner p{font-size:15.5px;}
+    .classroom{padding-left:34px;}
+    .classroom::before{left:9px;}
+    .passage .marker{left:-34px;}
+  }
+</style>
+</head>
+<body>
+<div id="progress"></div>
+
+<div class="wrap">
+
+  <!-- ══════ 1. HERO ══════ -->
+  <header class="hero">
+    <div class="eyebrow">拆解 / SKILL TEARDOWN</div>
+    <h1>{{断言式标题：这不是一个工具，是一段被注入的 XX 人格}}</h1>
+    <p class="lede">{{一句话说清这份拆解要带读者看懂什么——它的结构、内容，和「为什么这么设计」。}}</p>
+  </header>
+
+  <!-- ══════ 2. 执行摘要（小白只读这段也能懂） ══════ -->
+  <section class="sec">
+    <div class="sec-head"><span class="sec-ordinal">序</span><h2>它是什么，对我有什么用</h2><span class="sub">EXECUTIVE SUMMARY</span></div>
+    <div class="summary">
+      <div class="cell wide"><div class="k">一句大白话</div><div class="v">{{不用术语，说清它是什么}}</div></div>
+      <div class="cell"><div class="k">解决什么问题</div><div class="v">{{真实痛点}}</div></div>
+      <div class="cell"><div class="k">适合用在</div><div class="v">{{3 个典型场景}}</div></div>
+      <div class="cell"><div class="k">不适合</div><div class="v">{{看着像但其实不适用的场景}}</div></div>
+      <div class="cell"><div class="k">怎么开口</div><div class="v">{{示例说法}}</div></div>
+      <div class="cell"><div class="k">你要给它</div><div class="v">{{输入}}</div></div>
+      <div class="cell"><div class="k">你会拿到</div><div class="v">{{输出}}</div></div>
+      <div class="cell wide"><div class="k">值得学走 / 别照搬</div><div class="v">
+        <span class="tag keep">学走：{{可迁移的思路}}</span>
+        <span class="tag drop">别照搬：{{有前提的做法}}</span>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ══════ 3. 它到底怎么跑 ══════ -->
+  <section class="sec">
+    <div class="sec-head"><span class="sec-ordinal">壹</span><h2>它到底怎么跑</h2><span class="sub">HOW IT RUNS</span></div>
+    <p style="color:var(--ink-soft);max-width:54ch;margin:0 0 18px;">
+      产出形态：{{图 / 代码 / 文档}}　·　会不会反问你：{{大多不问，模糊时才问 / 自己拍板}}
+    </p>
+    <div class="track">
+      <div class="step"><div class="n">01</div><div class="t">你发起</div><div class="d">{{用户说了什么}}</div><span class="vis seen"></span></div>
+      <div class="step"><div class="n">02</div><div class="t">被动注入</div><div class="d">{{skill 加载了什么}}</div><span class="vis unseen"></span></div>
+      <div class="step"><div class="n">03</div><div class="t">内部规划</div><div class="d">{{它在心里怎么排}}</div><span class="vis unseen"></span></div>
+      <div class="step"><div class="n">04</div><div class="t">输出成品</div><div class="d">{{生成什么}}</div><span class="vis unseen"></span></div>
+      <div class="step"><div class="n">05</div><div class="t">你看到</div><div class="d">{{你最终拿到的东西}}</div><span class="vis seen"></span></div>
+    </div>
+  </section>
+
+  <!-- ══════ 4. 逐段课堂：连续长卷 ══════ -->
+  <section class="sec">
+    <div class="sec-head"><span class="sec-ordinal">贰</span><h2>逐段课堂</h2><span class="sub">THE SCROLL · <span id="pcount">0/0</span></span></div>
+
+    <div class="classroom" id="classroom">
+
+      <!-- —— 普通连接段（简批） —— -->
+      <article class="passage" data-key="0">
+        <div class="marker"><div class="dot"></div><div class="no">S001</div></div>
+        <div class="bilingual">
+          <div class="src"><div class="mini">ORIGINAL</div><p>{{原文段落 1（保留原始换行）}}</p></div>
+          <div class="zh"><div class="mini">译文</div><p>{{忠实中文翻译}}</p></div>
+        </div>
+        <button class="note-toggle" aria-expanded="false" onclick="toggleNote(this)">
+          <span class="seal">批</span><span class="label">展开批注</span><span class="chev">›</span>
+        </button>
+        <div class="note-body"><div class="note-inner">
+          <span class="ntag">{{连接段简批：这段在整份结构里承担什么职责}}</span>
+          <p>{{一两句点到即止}}</p>
+        </div></div>
+      </article>
+
+      <!-- —— 关键段（深挖 + 术语阶梯 + 学走/别照搬） —— -->
+      <article class="passage key" data-key="1">
+        <div class="marker"><div class="dot"></div><div class="no">S002</div></div>
+        <div class="bilingual">
+          <div class="src"><div class="mini">ORIGINAL</div><p>{{关键原文段落}}</p></div>
+          <div class="zh"><div class="mini">译文</div><p>{{忠实中文翻译}}</p></div>
+        </div>
+        <button class="note-toggle" aria-expanded="false" onclick="toggleNote(this)">
+          <span class="seal">批</span><span class="label">展开批注</span><span class="chev">›</span>
+        </button>
+        <div class="note-body"><div class="note-inner">
+          <span class="ntag">为什么是 {{A}} 而不是看着更合理的 {{B}}</span>
+          <p>{{回答思想层面的取舍：这个选择关掉了模型的哪条退路？把哪个不可控目标变成了哪个可控动作？}}</p>
+          <div class="ladder">
+            <b>术语翻译</b>：{{黑话}} → {{生活类比}} → {{在这里具体做什么}} → {{对你的影响}}
+          </div>
+          <p>{{至少一处指出「它没说什么 / 在哪留了口子」——沉默往往比规则更说明问题。}}</p>
+          <div class="verdict">
+            <span class="keep"><b>学走：</b>{{可迁移的元规则}}</span>
+            <span class="drop"><b>别照搬：</b>{{依赖前提、换场景会塌的地方}}</span>
+          </div>
+        </div></div>
+      </article>
+
+      <!-- —— 中文原文段示例（左原文单栏，批注在下方） —— -->
+      <article class="passage zh-src" data-key="0">
+        <div class="marker"><div class="dot"></div><div class="no">S003</div></div>
+        <div class="bilingual">
+          <div class="src"><div class="mini">原文</div><p>{{中文 skill 原文，无需译文}}</p></div>
+          <div class="zh"><p></p></div>
+        </div>
+        <button class="note-toggle" aria-expanded="false" onclick="toggleNote(this)">
+          <span class="seal">批</span><span class="label">展开批注</span><span class="chev">›</span>
+        </button>
+        <div class="note-body"><div class="note-inner">
+          <span class="ntag">{{批注标签}}</span>
+          <p>{{批注正文}}</p>
+        </div></div>
+      </article>
+
+    </div><!-- /.classroom -->
+  </section>
+
+  <!-- ══════ 5. 迁移练习 ══════ -->
+  <section class="sec">
+    <div class="sec-head"><span class="sec-ordinal">叁</span><h2>把它搬进你自己的 skill</h2><span class="sub">TRANSFER</span></div>
+    <div class="takeaway">
+      <h3>整份 skill 的心智模型</h3>
+      <p style="color:var(--ink-soft);">{{一句话概括它的底层套路}}</p>
+      <div class="rule">写 skill 时优先问：{{可迁移的元规则 1}}</div>
+      <div class="rule">写 skill 时优先问：{{可迁移的元规则 2}}</div>
+    </div>
+  </section>
+
+  <footer>skill-decode · 拆解让初学者看懂一个 skill 的结构、内容与设计逻辑 · 单文件 · 离线可读</footer>
+</div>
+
+<script>
+  // 批注展开：唯一被编排的动作，用 max-height 过渡
+  function toggleNote(btn){
+    var body = btn.nextElementSibling;
+    var open = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!open));
+    btn.querySelector('.label').textContent = open ? '展开批注' : '收起批注';
+    body.style.maxHeight = open ? '0px' : body.firstElementChild.scrollHeight + 40 + 'px';
+  }
+  // 阅读进度 + 段计数
+  var passages = document.querySelectorAll('.passage');
+  document.getElementById('pcount').textContent = '0/' + passages.length;
+  window.addEventListener('scroll', function(){
+    var h = document.documentElement;
+    var pct = h.scrollTop / (h.scrollHeight - h.clientHeight) * 100;
+    document.getElementById('progress').style.width = pct + '%';
+    var read = 0, mid = h.scrollTop + h.clientHeight * 0.5;
+    passages.forEach(function(p){ if (p.offsetTop < mid) read++; });
+    document.getElementById('pcount').textContent = read + '/' + passages.length;
+  }, {passive:true});
+</script>
+</body>
+</html>

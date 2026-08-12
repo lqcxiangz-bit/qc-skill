@@ -1,0 +1,4 @@
+interface:
+  display_name: "skill-decode · 拆解让初学者看懂一个 skill"
+  short_description: "把一个 skill 拆成暖纸色 HTML 长卷，让小白看懂它的结构、内容与设计逻辑"
+  default_prompt: "使用 $skill-decode 把这个 skill 拆给初学者：先用大白话讲清它是什么、怎么用、怎么跑，再把 SKILL.md 逐段做成原文＋译文＋锋利批注的连续长卷 HTML。"
