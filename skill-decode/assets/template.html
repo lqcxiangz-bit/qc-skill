@@ -46,6 +46,10 @@
   #progress{position:fixed;top:0;left:0;height:3px;width:0;background:var(--cinnabar);z-index:50;transition:width .1s linear;}
 
   .wrap{max-width:1080px;margin:0 auto;padding:0 28px;}
+  /* 防御网：正常情况下 hero/section/footer 都在 .wrap 内。万一某次构建把它们
+     漏到了 .wrap 外面（直接挂 body 下）导致通栏顶边，这条兜底给它们同样的居中
+     边距。正常结构下 body>.sec 不匹配（它们是 .wrap 的孙节点），零副作用。 */
+  body>.hero,body>.sec,body>footer{max-width:1080px;margin-inline:auto;padding:0 28px;}
   .eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);}
 
   /* ══════════ 1. HERO —— 一篇论点，不是介绍 ══════════ */
@@ -176,7 +180,7 @@
   /* 原则：手机上可以往下滚很长，但正文/译文/批注都不许缩小到看不清。
      译文是主文本(17px)，批注 16px 保底，英文原文 16px 斜体。 */
   @media (max-width:720px){
-    .wrap{padding:0 18px;}
+    .wrap,body>.hero,body>.sec,body>footer{padding:0 18px;}
     body{font-size:16.5px;}
     .hero{padding:60px 0 44px;}
     .hero .lede{font-size:18px;}
@@ -211,7 +215,7 @@
 
   /* 更小的屏（≤380）再让边距紧一点，但字号不再往下动 */
   @media (max-width:380px){
-    .wrap{padding:0 14px;}
+    .wrap,body>.hero,body>.sec,body>footer{padding:0 14px;}
     .classroom{padding-left:24px;}
     .passage .marker{left:-24px;}
     .classroom::before{left:6px;}
