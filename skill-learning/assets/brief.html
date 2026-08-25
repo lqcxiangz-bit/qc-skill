@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>这是个什么东西 · 目标名</title>
+<style>
+:root{
+  --paper:#f6f2e9; --sink:#efe9db; --ink:#2a2620; --ink-soft:#5d564b;
+  --hair:#ddd4c2; --cinnabar:#c0392b; --gold:#8a6d2f; --moss:#3a6b5b;
+  --serif:"Songti SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--serif);font-size:17px;line-height:1.85;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:900px;margin:0 auto;padding:0 28px 110px}
+p{margin:0 0 .9em}
+strong{font-weight:700}
+code{font-family:var(--mono);font-size:.88em;background:var(--sink);
+  padding:.08em .34em;border-radius:3px}
+
+.hero{padding:92px 0 52px;max-width:640px}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;
+  color:var(--cinnabar);text-transform:uppercase;margin-bottom:22px}
+.hero h1{font-size:44px;line-height:1.28;margin:0;font-weight:700;letter-spacing:-.01em}
+
+/* 章节：轻量标题，不做横幅；三问之间不用盒子隔开 */
+.sec-head{display:flex;align-items:baseline;gap:14px;margin:70px 0 30px;
+  padding-top:26px;border-top:1px solid var(--hair)}
+.sec-ordinal{font-size:26px;color:var(--cinnabar);font-weight:700}
+.sec-head h2{font-size:21px;margin:0;font-weight:700}
+.sec-head .en{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--ink-soft)}
+
+/* ── 第一问：图是主角，字是配角 ── */
+.diagram{margin:8px 0 30px}
+.diagram svg{display:block;width:100%;height:auto;max-width:720px;margin:0 auto}
+.cap{font-family:var(--mono);font-size:12px;color:var(--ink-soft);
+  text-align:center;margin-top:12px}
+/* 200 字以内。挤不下的东西不要硬塞，下沉到第二问 */
+.plain{max-width:640px}
+.plain .row{display:flex;gap:14px;padding:9px 0;border-bottom:1px dotted var(--hair)}
+.plain .k{flex:0 0 108px;font-family:var(--mono);font-size:12.5px;color:var(--gold);
+  padding-top:5px}
+
+/* 易混点：给小白省时间的一刀，写成「很多人以为它是…，其实它是…」 */
+.mixup{border-left:2px solid var(--moss);background:rgba(58,107,91,.06);
+  padding:13px 17px;border-radius:0 4px 4px 0;margin:22px 0 0;max-width:620px}
+.mixup .lab{font-family:var(--mono);font-size:12px;color:var(--moss);margin-bottom:6px}
+.mixup p{margin:0}
+
+/* ── 第二问：三个场景，图为主 ── */
+.cases{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin:8px 0 30px}
+.case{min-width:0}
+.case svg{display:block;width:100%;height:auto}
+/* 场景一句话 ≤40 字，写成「我正在做的事」，不是抽象分类 */
+.case .when{font-size:15.5px;line-height:1.72;margin-top:10px;color:var(--ink)}
+.case .when b{display:block;color:var(--cinnabar);font-size:13px;
+  font-family:var(--mono);margin-bottom:5px;letter-spacing:.03em}
+
+/* ── 第三问：三块，都要一眼看完 ── */
+.tally{background:var(--sink);border-radius:5px;padding:20px 24px;margin:0 0 26px}
+.tally .big{font-size:18px;font-weight:700;margin-bottom:8px;line-height:1.55}
+.tally p{margin:0 0 10px;color:var(--ink-soft);font-size:15.5px}
+.tally .ev{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft)}
+
+.stands{margin:0 0 26px}
+/* 只准写成：它假设 ___，你如果 ___，它就不管用。填不满三个空就删掉这条 */
+.cond{border-left:2px solid var(--gold);padding:4px 0 4px 18px;margin:14px 0;font-size:16px}
+.stands .cond b{color:var(--ink)}
+
+.miss{margin:0 0 26px}
+.miss .row{display:flex;gap:12px;padding:7px 0}
+.miss .x{flex:0 0 18px;color:var(--cinnabar);font-weight:700}
+.miss h3{font-size:16px;margin:0 0 10px}
+
+/* ── 最后一句实话 ── */
+.verdict{border:1px solid var(--cinnabar);border-radius:5px;
+  padding:22px 26px;background:rgba(192,57,43,.045);margin:34px 0 30px}
+.verdict .lab{font-family:var(--mono);font-size:12px;letter-spacing:.1em;
+  color:var(--cinnabar);margin-bottom:10px}
+.verdict .say{font-size:19px;font-weight:700;margin-bottom:10px}
+.verdict p{margin:0 0 14px;color:var(--ink-soft)}
+.verdict.next{border-color:var(--gold);background:rgba(138,109,47,.05);margin:30px 0 0}
+/* 往下一层的入口：做成显眼按钮，不要做成一行小字链接 */
+.verdict .cta{display:inline-flex;align-items:center;gap:9px;margin-top:18px;
+  padding:13px 24px;border-radius:999px;background:var(--cinnabar);color:var(--paper);
+  text-decoration:none;font-family:var(--serif);font-size:16px;font-weight:700}
+.verdict .cta:hover{background:#a33326;opacity:1}
+.verdict .cta .arrow{transition:transform .25s ease}
+.verdict .cta:hover .arrow{transform:translateX(4px)}
+.verdict.next .lab{color:var(--gold)}
+
+@media(max-width:760px){
+  body{font-size:16px}
+  .wrap{padding:0 18px 80px}
+  .hero{padding:54px 0 34px}
+  .hero h1{font-size:29px}
+  .plain .row,.tally,.stands,.miss{display:block}
+  .cases{grid-template-columns:1fr;gap:30px}
+  .plain .k{margin-bottom:2px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">SKILL LEARNING · 目标名</div>
+    <!-- 一句判断，不是一句介绍。不要用「本文将拆解…」起头 -->
+    <h1>这里写一句能被反驳的断言。</h1>
+  </header>
+
+  <!-- ══════════ 第一问 ══════════
+       图是主角。图上的字 ≤30 个，必须标出一处「本来可以是别的做法」。
+       这一整块文字加起来 ≤200 字。挤不下就下沉到第二问，不要硬塞。 -->
+  <div class="sec-head">
+    <span class="sec-ordinal">一</span>
+    <h2>这是个什么东西</h2>
+    <span class="en">WHAT IS IT</span>
+  </div>
+
+  <figure class="diagram">
+    <!-- 内嵌 SVG：纸色底、墨褐线、朱砂只用来标那一处。
+         不要画成一排等宽方框加箭头——那种图什么都没说。
+         验收：遮住页面所有文字，只看图，能不能说出它怎么运作。 -->
+    <svg viewBox="0 0 720 240" role="img" aria-label="机制图">
+      <!-- 在这里画 -->
+    </svg>
+    <figcaption class="cap">朱砂标注的地方：这里本来可以是别的做法</figcaption>
+  </figure>
+
+  <div class="plain">
+    <div class="row"><span class="k">它替你做什么</span><span></span></div>
+    <!-- 必须给一句能直接照抄的话，不是一句描述 -->
+    <div class="row"><span class="k">我可以怎么用它</span><span></span></div>
+    <div class="row"><span class="k">你要给它什么</span><span></span></div>
+    <div class="row"><span class="k">你会拿到什么</span><span></span></div>
+  </div>
+
+  <!-- 必须指向一个真的会搞混的具体东西（另一个同名词、另一类工具、一个常见期待）。
+       实在没有就写「没什么容易搞混的」并说明为什么，不许硬编。 -->
+  <div class="mixup">
+    <div class="lab">易混点</div>
+    <p>很多人以为它是 ______，其实它是 ______。</p>
+  </div>
+
+  <!-- ══════════ 第二问 ══════════
+       三个场景，每个一张小过程图。场景 ≤40 字，图上字 ≤15。
+       三个必须是不同类型的；想不出第三个不同的就只放两个，凑数比少一个更糟。 -->
+  <div class="sec-head">
+    <span class="sec-ordinal">二</span>
+    <h2>你可以怎么用它</h2>
+    <span class="en">WHEN WOULD I REACH FOR IT</span>
+  </div>
+
+  <div class="cases">
+    <!-- 画「这个场景下你会拿到的那个东西」，不是抽象流程。
+         三张图必须长得不一样——形状相同只换标签，等于没画。
+         ❌ 三个都是「框→箭头→框→箭头→框」  ❌ 框里写自造词（钉主题/找撞脸）
+         ✅ 一张海报轮廓 / 一个浏览器窗 / 左右两张页面缩略图 -->
+    <div class="case">
+      <svg viewBox="0 0 200 152" role="img" aria-label="场景一：把你会拿到的东西画出来"></svg>
+      <div class="when"><b>我正在做的一件具体的事</b>≤40 字，说清它在这件事里替你干了什么</div>
+    </div>
+    <div class="case">
+      <svg viewBox="0 0 200 152" role="img" aria-label="场景二：另一种东西，形状要和场景一不同"></svg>
+      <div class="when"><b></b></div>
+    </div>
+    <div class="case">
+      <svg viewBox="0 0 200 152" role="img" aria-label="场景三：再换一种类型，想不出就删掉这块"></svg>
+      <div class="when"><b></b></div>
+    </div>
+  </div>
+
+  <!-- ══════════ 第三问 ══════════
+       整节结论打头：读者是来做决定的，不是来看推导过程的。
+       顺序固定 ① 能不能用+前提 → ② 依据 → ③ 拿不到什么 → ④ 要不要往下细读 -->
+  <div class="sec-head">
+    <span class="sec-ordinal">三</span>
+    <h2>它靠不靠谱</h2>
+    <span class="en">IS IT ANY GOOD</span>
+  </div>
+
+  <!-- ① 放最前面。能用（前提是…）/ 能用但有前提 / 不建议用（因为…），三选一。
+       前提写成条件句：它假设 ___，你如果 ___，它就不管用。填不满三个空就删掉这条。 -->
+  <div class="verdict">
+    <div class="lab">能不能用</div>
+    <div class="say"></div>
+    <p></p>
+  </div>
+
+  <!-- ② 依据。先跑 count.py 再逐条复核。
+       不许数字打头、不许摆一个你马上要推翻的数字、不许报百分比。
+       注意经验也可能写在正面陈述里，只数「不要」会误判。 -->
+  <div class="tally">
+    <div class="big">一句结论：它是真踩过坑写的 / 拍脑袋定的 / 某个工具的约定。</div>
+    <p>（用具体证据撑住：括号里的理由、具体色号、具体故障、能核对的清单）</p>
+    <div class="ev">依据：__ 条「不要」，__ 条给了理由</div>
+  </div>
+
+  <!-- ③ 必须写，不许空。只说好处的介绍，读者没法拿它做决定 -->
+  <div class="miss">
+    <h3>你拿不到什么</h3>
+    <div class="row"><span class="x">×</span><span></span></div>
+  </div>
+
+  <!-- ④ 这是关于「这份拆解」的，不是关于那个 skill 的。
+       值得细读 / 只有某几段值得 / 不值得（不值得就停在这里，不要做第四问） -->
+  <div class="verdict next">
+    <div class="lab">要不要往下细读</div>
+    <div class="say"></div>
+    <p></p>
+    <a class="cta" href="scroll.html">接着看 skill 内容的逐段拆解 <span class="arrow">→</span></a>
+  </div>
+
+</div>
+</body>
+</html>

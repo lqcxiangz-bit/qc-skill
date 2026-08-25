@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{TITLE}}</title>
+<style>
+:root{
+  --paper:#f6f2e9; --sink:#efe9db; --ink:#2a2620; --ink-soft:#5d564b;
+  --hair:#ddd4c2; --cinnabar:#c0392b; --gold:#8a6d2f; --moss:#3a6b5b;
+  --serif:"Songti SC","Source Han Serif SC",Georgia,"Times New Roman",serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--serif);font-size:17px;line-height:1.85;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:0 28px 120px}
+p{margin:0 0 .9em}
+strong{font-weight:700;color:var(--ink)}
+code{font-family:var(--mono);font-size:.88em;background:var(--sink);
+  padding:.08em .34em;border-radius:3px}
+pre{font-family:var(--mono);font-size:15.5px;line-height:1.7;background:var(--sink);
+  padding:14px 16px;margin:.6em 0;border-radius:4px;
+  white-space:pre-wrap;word-break:break-word;overflow-x:visible}
+
+/* ── 开头：一句判断 ── */
+.hero{padding:96px 0 64px;max-width:640px}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;
+  color:var(--cinnabar);text-transform:uppercase;margin-bottom:22px}
+.hero h1{font-size:46px;line-height:1.28;margin:0 0 26px;font-weight:700;letter-spacing:-.01em}
+
+/* ── 章节标题：轻量，不做横幅 ── */
+.sec-head{display:flex;align-items:baseline;gap:14px;margin:78px 0 34px}
+.sec-ordinal{font-size:26px;color:var(--cinnabar);font-weight:700}
+.sec-head h2{font-size:21px;margin:0;font-weight:700}
+.sec-head .en{font-family:var(--mono);font-size:12px;letter-spacing:.1em;color:var(--ink-soft)}
+
+/* ── 长卷：一条竖线从头拉到尾，不给每段做卡片 ── */
+.classroom{position:relative;padding-left:44px}
+.classroom::before{content:"";position:absolute;left:14px;top:6px;bottom:6px;
+  width:1px;background:var(--hair)}
+.passage{position:relative;padding:30px 0;border-bottom:1px solid var(--hair)}
+.passage:last-child{border-bottom:none}
+.marker{position:absolute;left:-44px;top:34px;width:44px;text-align:center}
+.dot{display:block;width:7px;height:7px;margin:0 auto 6px;border-radius:50%;
+  border:1.5px solid var(--hair);background:var(--paper)}
+.passage.key .dot{background:var(--gold);border-color:var(--gold)}
+.passage.eye .dot{background:var(--cinnabar);border-color:var(--cinnabar);
+  box-shadow:0 0 0 4px rgba(192,57,43,.15)}
+.no{font-family:var(--mono);font-size:12px;color:var(--ink-soft)}
+.brow{font-family:var(--mono);font-size:12px;letter-spacing:.08em;
+  color:var(--cinnabar);margin-bottom:10px}
+.merged{font-size:14px;color:var(--gold);background:var(--sink);
+  padding:7px 11px;border-radius:3px;margin-bottom:14px}
+
+.bilingual{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+.bilingual>div{min-width:0}
+.zh{border-left:1px solid var(--hair);padding-left:40px}
+.label{font-family:var(--mono);font-size:12px;letter-spacing:.06em;
+  color:var(--ink-soft);margin-bottom:10px}
+
+/* ── 展开批注：全页唯一被编排的动作 ── */
+.note-toggle{display:inline-flex;align-items:center;gap:9px;margin-top:20px;
+  padding:7px 15px;border:1px solid var(--cinnabar);border-radius:999px;
+  background:rgba(192,57,43,.05);color:var(--cinnabar);cursor:pointer;
+  font-family:var(--serif);font-size:14px;font-weight:700}
+.note-toggle:hover{background:rgba(192,57,43,.1)}
+.seal{display:inline-flex;align-items:center;justify-content:center;
+  width:18px;height:18px;border:1px solid var(--cinnabar);border-radius:50%;font-size:11px}
+.chev{transition:transform .3s ease}
+.note-toggle[aria-expanded="true"] .chev{transform:rotate(90deg)}
+.note-inner{max-height:0;overflow:hidden;transition:max-height .4s ease}
+.note-inner.open{max-height:4000px}
+.note-body{font-size:16px;line-height:1.8;color:var(--ink-soft);
+  border-left:2px solid var(--gold);padding:18px 0 4px 20px;margin-top:16px}
+.ntag{font-weight:700;color:var(--ink);margin-bottom:12px;font-size:16.5px}
+.choice{background:var(--sink);padding:13px 16px;border-radius:4px;margin:14px 0}
+.choice b{color:var(--ink)}
+.incident{margin:14px 0}
+.incident>div{display:flex;gap:12px;padding:5px 0;border-bottom:1px dotted var(--hair)}
+.incident .k{flex:0 0 92px;font-family:var(--mono);font-size:12px;color:var(--cinnabar);
+  padding-top:4px}
+.ladder{font-size:15px;color:var(--moss);background:rgba(58,107,91,.07);
+  padding:10px 14px;border-radius:4px;margin:14px 0}
+.takeaway{margin-top:16px}
+.takeaway>div{display:flex;gap:11px;padding:6px 0}
+.takeaway .k{flex:0 0 62px;font-family:var(--mono);font-size:12px;padding-top:3px}
+.takeaway .good{color:var(--moss)}
+.takeaway .warn{color:var(--gold)}
+
+@media(max-width:760px){
+  body{font-size:16px}
+  .wrap{padding:0 18px 80px}
+  .hero{padding:56px 0 40px}
+  .hero h1{font-size:32px}
+  .classroom{padding-left:28px}
+  .classroom::before{left:7px}
+  .marker{left:-28px;width:28px;top:30px}
+  .bilingual{grid-template-columns:1fr;gap:22px}
+  .zh{border-left:none;border-top:1px solid var(--hair);padding-left:0;padding-top:18px}
+  .note-body{font-size:15.5px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">SKILL LEARNING · {{TARGET}}</div>
+    <h1>{{HERO}}</h1>
+  </header>
+
+  <div class="sec-head">
+    <span class="sec-ordinal">四</span>
+    <h2>我能学走什么</h2>
+    <span class="en">PASSAGE BY PASSAGE</span>
+  </div>
+
+  <div class="classroom">
+<!--PASSAGES-->
+  </div>
+
+</div>
+<script>
+document.querySelectorAll(".note-toggle").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var panel = btn.nextElementSibling;
+    var open = panel.classList.toggle("open");
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.querySelector(".t").textContent = open ? "收起批注" : "点击展开批注";
+  });
+});
+</script>
+</body>
+</html>
