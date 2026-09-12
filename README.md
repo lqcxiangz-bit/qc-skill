@@ -9,6 +9,7 @@
 | [skill-teardown](./skill-teardown) | 把一个 skill / 文档 / 提示词拆解成一篇「批注式长卷 HTML」——先质量裁决、再还原运行画面、最后逐段英文原文 + 中文译文 + 可展开深度批注。 |
 | [skill-learning](./skill-learning) | 看懂一个 skill，并判断它值不值得学。依次答四问：这是个什么东西 / 你可以怎么用它 / 它靠不靠谱 / 我能学走什么——第四问只对判为「值得」的才做。带两个脚本：`count.py` 数规矩取证，`render.py` 按行号切原文、渲染长卷并做交付前硬检查。 |
 | [skill-anatomist-v3](./skill-anatomist-v3) | 面向初学者的 Skill 解剖教授：先讲清什么时候用、怎么用和会得到什么，再解释设计因果，最后对 `SKILL.md` 做全文逐段翻译与教授批注。 |
+| [xm](./xm) | 把同一个任务并行交给本机的 Codex、Gemini（agy）和 Claude Code，保存完整答卷，并支持重复采样与匿名对照评判。 |
 
 ## 安装
 
@@ -20,6 +21,11 @@ cp -r skill-teardown ~/.wiscode/skills/
 
 # Codex 用户级 skill 目录
 cp -r skill-anatomist-v3 ~/.agents/skills/
+
+# 安装完整的 xm skill，并让命令可直接调用
+cp -r xm ~/.codex/skills/
+mkdir -p ~/.local/bin
+ln -sfn ~/.codex/skills/xm/bin/xm ~/.local/bin/xm
 ```
 
 ## 约定

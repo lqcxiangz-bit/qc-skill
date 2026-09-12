@@ -1,0 +1,66 @@
+# ── agy (Antigravity CLI → Gemini) ────────────────────────────────────────
+# 实测环境：agy / macOS 26 / 2026-09-02
+# 注意：Google 官方那个 `gemini` CLI 是另一个二进制。要用那个就另写一份 gemini.toml。
+
+name = "agy"
+bin  = "agy"
+display = "Gemini (Antigravity)"
+version_cmd = ["--version"]
+
+entry = []
+
+# ⚠️ 只能走 argv，而且 prompt 必须**紧贴 -p**，写成 -p=<prompt>。
+# 实测两条：
+#   1. `-p` 后面不跟值 → rc=2「flag needs an argument: -p」，管道喂的内容它根本不看
+#      (好消息：不会挂住，是秒退)
+#   2. 把别的 flag 插在 -p 和 prompt 之间(如 `-p --print-timeout 180s "问题"`)→ rc=2
+#      「Attach the prompt to the flag (-p='your prompt') and move --print-timeout
+#       elsewhere」。Go 的 flag 包让 -p 吃掉了下一个 token。用 = 形式彻底消除歧义。
+prompt_via = "argv_flag"
+prompt_flag = "-p"
+# macOS ARG_MAX ≥1MB；Windows 命令行上限 32767 字符 —— 那边超了报的是没头没尾的
+# returncode，不是「太长了」。xm 会按平台预算提前拦下来并说人话。
+argv_budget = 1000000
+argv_budget_win32 = 30000
+
+
+# 实测 stdout 就是答案本体，干净(cat -v 无 ANSI)，stderr 为空。
+answer_from = "stdout"
+answer_file_flag = ""
+
+# judge 匿名化时要打掉的自称词。**这里的词会无差别子串/词边界匹配**：
+# 已去掉 bard —— 退役产品名，且是通用英文词(吟游诗人)，误伤远大于收益
+identity_terms = ["gemini","antigravity","agy"]
+
+model_flag = "--model"
+model_note = """\
+两种写法，别混：
+  --model "Gemini 3.7 Flash (High)"     ← 带档位的全名，能单独用
+  --model gemini-3.7-flash --effort high ← slug 必须配 --effort
+实测只给 slug 不给 effort 是**直接报错**(rc=1，stderr 写明 requires --effort)，
+不是静默降级。`agy models` 出实时清单。"""
+
+# 内建超时，默认只有 5m0s，长任务会被半路砍断、现象像「模型没回答」。
+timeout_flag = "--print-timeout"
+timeout_format = "{n}s"
+
+# 不支持 xm run --sandbox：agy 的 --sandbox 是布尔开关，语义与 codex 的三档不同，v1 不做映射。
+sandbox_flag = ""
+
+[success]
+exit_ok = [0]
+# ⚠️ agy 出错时有时候退出码仍是 0，只在输出开头写一行 Error:。
+# 所以这里必须有正则兜底 —— 这一格是整张表里最不显眼、但最影响产物可信度的。
+forbid = ["^\\s*Error:"]
+min_chars = 1
+
+[caveats]
+auth = """\
+报「Authentication required. Please visit the URL to log in」时**先查网络**。
+agy 自带 refresh_token(~/.gemini/jetski-standalone-oauth-token)，续期要连
+oauth2.googleapis.com；代理一抽风刷新失败，它一律报成「请重新登录」，文案极具误导性。
+  curl -sI -m 10 https://oauth2.googleapis.com/
+网络确认没问题还过不去，才是真要重登：**打开 Antigravity 桌面应用**登录
+(CLI 没有 login 子命令)。桌面端平时不需要开着。"""
+exit_code = """\
+rc=0 不等于成功，见 [success].forbid。判成功要连输出内容一起看。"""

@@ -1,0 +1,62 @@
+# ── codex (OpenAI Codex CLI) ──────────────────────────────────────────────
+# 实测环境：OpenAI Codex v0.145.0 / macOS 26 / 2026-09-02
+# ⚠️ 这一格有两条实测结论跟网上流传的写法相反，见 [caveats]。
+
+name = "codex"
+bin  = "codex"
+display = "OpenAI Codex"
+version_cmd = ["--version"]
+
+# --skip-git-repo-check 常驻：不在 git 仓库里 codex 直接拒跑(rc=1，0.2s)。
+# 沙箱默认 read-only(codex 自己的默认值，这里写死是为了让「只读」显式可见)。
+entry = ["exec", "--skip-git-repo-check"]
+
+# 沙箱：xm run --sandbox 会走这里。不给就用 sandbox_default。
+sandbox_flag = "-s"
+sandbox_default = "read-only"
+sandbox_values = ["read-only", "workspace-write", "danger-full-access"]
+
+prompt_via = "argv_tail"
+# prompt 前先放一个 "--" 终止选项解析。不加的话，以 - 开头的 prompt
+# (Markdown 列表 "- 帮我重构…" 极常见)会被 clap 当成 codex 自己的 flag。
+argv_separator = true
+argv_budget = 1000000
+
+
+# 答案从 -o 指定的文件取。
+# 实测 v0.145.0 的 stdout 其实也是干净答案(会话头/模型名/token 统计全在 stderr)，
+# 但 -o 是「最后一条消息」的显式契约，跨版本稳定；stdout 的行为历史上变过。
+answer_from = "file"
+answer_file_flag = "-o"
+
+# judge 匿名化时要打掉的自称词。**这里的词会无差别子串/词边界匹配**：
+# gpt 会命中 GPT 分区表，o3 会命中臭氧 O3 —— 这些是知情的取舍
+identity_terms = ["codex","openai","gpt","chatgpt","o1","o3","o4"]
+
+model_flag = "-m"
+model_note = "不传则用账号默认(实测当前是 gpt-5.6-luna)。"
+
+timeout_flag = ""
+timeout_format = ""
+
+[success]
+exit_ok = [0]
+forbid = []
+min_chars = 1
+
+[caveats]
+stdin_deadlock = """\
+🔴 codex exec 不给显式 stdin 会**永远挂住**，不报错、不超时、看起来像模型在想。
+原因：help 里写着「stdin is piped 时会当作 <stdin> 块追加」，于是它一直读到 EOF。
+父进程的 stdin 被继承时(在 CI、在别的 agent 里、在 subprocess 里)就是这种情况。
+实测：不给 stdin → 60s / 90s 两次全部 TIMEOUT；给一个空 stdin → 12s 正常返回。
+xm 一律显式喂 stdin(argv 模式下喂空字节)，所以这条已经被挡掉了。
+你要是手搓命令行，记得 `< /dev/null`。"""
+git_check = """\
+不在 git 仓库里直接 rc=1：「Not inside a trusted directory and --skip-git-repo-check
+was not specified.」在 /tmp 里跑最容易撞上，所以 entry 里常驻了这个 flag。"""
+sandbox = """\
+默认 read-only + approval:never —— 它说「我没法改文件」时先看沙箱，别去改 prompt。"""
+isolation = """\
+会读 cwd 的 AGENTS.md 和已装 skill。在你仓库里跑=带着仓库规矩跑(通常正是你要的)；
+但当盲评裁判时那就是泄题，所以 --isolate-cwd 会把它挪到空的临时目录。"""

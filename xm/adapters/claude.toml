@@ -1,0 +1,62 @@
+# ── claude (Anthropic Claude Code CLI) ────────────────────────────────────
+# 本表全部为实测值，不是照文档抄的。改之前先在自己机器上复现。
+# 实测环境：claude 2.x / macOS 26 / 2026-09-02
+
+name = "claude"
+bin  = "claude"
+display = "Claude Code"
+version_cmd = ["--version"]
+
+# 非交互入口。--permission-prompts none 是硬约束：-p 默认把权限确认
+# 交给 host，但 xm 没有交互式 host；一旦 Claude 请求需要确认的工具，
+# 进程就会永久等一个不存在的回答，最后被 xm 的总超时强杀。
+# none 会让未预授权的工具立即返回 denied，Claude 可以换路或给出有边界的答案。
+entry = ["-p", "--permission-prompts", "none"]
+
+# prompt 怎么进去：argv | stdin
+# 实测：两条都通(argv 8.4s / stdin 6.9s)。默认走 stdin —— 绕开 argv 长度上限。
+prompt_via = "stdin"
+argv_budget = 1000000
+
+# 是否必须显式给 stdin(哪怕空)。claude 不给也不会挂，但统一给，无副作用。
+
+# 答案在哪：stdout | file
+# 实测：stdout 就是答案本体，干净，无事件流、无 ANSI、stderr 为空。
+answer_from = "stdout"
+answer_file_flag = ""
+
+# 结构化字段：换 cwd 挡不住它读全局配置。v1.1 靠在中文 caveat 文本里
+# 找「挡不住」「全局」这两个词来判断，新适配器文案换个说法就悄悄漏报了。
+leaks_global_config = true
+
+# judge 匿名化时要打掉的自称词。**这里的词会无差别子串/词边界匹配**：
+# sonnet/opus/haiku/fable 是诗体和寓言，克劳德是常见人名音译(克劳德·香农) —— 评文学内容时用 --no-mask
+identity_terms = ["claude","anthropic","sonnet","opus","haiku","fable","克劳德"]
+
+model_flag = "--model"
+model_note = "别名(fable/opus/sonnet)或全名都收。不传则用 CLI 默认。"
+
+# 内建超时标志。claude 没有 —— 只能靠 xm 外层硬超时。
+timeout_flag = ""
+timeout_format = ""
+
+# 不支持 xm run --sandbox：claude 的权限走 --permission-mode，语义与 codex 的 -s 不同，v1 不做映射。
+sandbox_flag = ""
+
+[success]
+exit_ok = [0]
+# 登录失败通常会配 rc=1；仍显式识别正文，防 CLI 版本改变退出码后把提示误算成答案。
+forbid = ["(?i)not logged in", "(?i)authentication required", "(?i)account is on hold"]
+min_chars = 1
+
+[caveats]
+# 会被 xm 收进 manifest.warnings，也印在 doctor 里
+isolation = """\
+claude 会加载 ~/.claude/CLAUDE.md(全局)+ cwd 的 CLAUDE.md。--isolate-cwd 只能挡住后者。
+唯一能全关的开关是 --bare，但它同时把认证限死成 ANTHROPIC_API_KEY(不读 OAuth/钥匙串)，
+OAuth 登录的机器上用不了。=> 拿 claude 当盲评裁判时，全局 CLAUDE.md 的污染挡不住，
+xm 会在 manifest 里标 isolation_partial。要干净就换一家当裁判。"""
+permissions = """\
+Claude -p 默认把工具权限确认交给 host，但 xm 是无人值守进程。适配器固定传
+--permission-prompts none，避免等待一个不存在的确认。未预授权工具会立即被拒绝；
+确实要联网调研时，由调用方显式透传 --allowedTools WebSearch,WebFetch。"""
